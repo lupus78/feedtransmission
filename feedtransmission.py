@@ -4,6 +4,7 @@ import sys, os
 import feedparser
 import transmissionrpc
 import argparse
+import logging
 
 # path to the added items list file
 added_items_filepath = os.path.join(os.path.abspath(os.path.dirname(os.path.abspath(__file__))), 'addeditems.txt')
@@ -26,7 +27,7 @@ def addItem(link):
 def parseFeed(feed_url):
 	feed = feedparser.parse(feed_url)
 	if feed.bozo and feed.bozo_exception:
-		print "Error reading feed \'{0}\':".format(feed_url),feed.bozo_exception
+		logging.error("Error reading feed \'{0}\': ".format(feed_url) + str(feed.bozo_exception).strip())
 		return
 
 	addeditems = readAddedItems()
@@ -34,11 +35,11 @@ def parseFeed(feed_url):
 	for item in feed.entries:
 		if item.link not in addeditems:
 			try:
-				print "Adding Torrent:", item.title
+				logging.info("Adding Torrent: " + str(item.title))
 				tc.add_torrent(item.link)
 				addItem(item.link)
 			except:
-				print "Error adding item \'{0}\':".format(item.link), sys.exc_info()[0]
+				logging.error("Error adding item \'{0}\': ".format(item.link) + str(sys.exc_info()[0]).strip())
 
 # argparse configuration and argument definitions
 parser = argparse.ArgumentParser(description='Reads RSS/Atom Feeds and add torrents to Transmission')
@@ -60,12 +61,22 @@ parser.add_argument('--transmission-password',
 					default=None,
 					metavar='<password>',
 					help='Port for Transmission RPC (default: %(default)s)')
+parser.add_argument('--log-file',
+					default=None,
+					metavar='<logfile path>',
+					help='The logging file, if not specified, prints to output')
 parser.add_argument('--clear-added-items',
 					action='store_true',
 					help='Clears the list of added torrents. You can also do that by deleting the addeditems.txt')
 
 # parse the arguments
 args = parser.parse_args()
+
+if args.log_file:
+	logging.basicConfig(format='%(asctime)s [%(levelname)s]: %(message)s',level=logging.DEBUG, filename=args.log_file)
+else:
+	logging.basicConfig(format='%(asctime)s: %(message)s',level=logging.DEBUG)
+
 
 # clears the added items file if asked for
 if args.clear_added_items:
@@ -75,10 +86,10 @@ if args.clear_added_items:
 try:
 	tc = transmissionrpc.Client(args.transmission_host, port=args.transmission_port, user=args.transmission_user, password=args.transmission_password)
 except transmissionrpc.error.TransmissionError as te:
-	print "Error connecting to Transmission:",te
+	logging.error("Error connecting to Transmission: " + str(te).strip())
 	exit(0)
 except:
-	print "Error connecting to Transmission:", sys.exc_info()[0]
+	logging.error("Error connecting to Transmission: " + str(sys.exc_info()[0]).strip())
 	exit(0)
 
 # read the feed urls from config
