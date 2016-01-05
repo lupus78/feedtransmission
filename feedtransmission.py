@@ -18,10 +18,12 @@ def readAddedItems():
 				addeditems.append(line.rstrip('\n'))
 	return addeditems
 
-# appends a link to the added items
-def addItem(link):
+# add the link to transmission and appends the link to the added items
+def addItem(item):
+	logging.info("Adding Torrent: " + item.title + " (" + item.link + ")")
+	tc.add_torrent(item.link)
 	with open(added_items_filepath, 'a') as f:
-		f.write(link + '\n')
+		f.write(item.link + '\n')
 
 # parses and adds torrents from feed
 def parseFeed(feed_url):
@@ -35,9 +37,7 @@ def parseFeed(feed_url):
 	for item in feed.entries:
 		if item.link not in addeditems:
 			try:
-				logging.info("Adding Torrent: " + str(item.title))
-				tc.add_torrent(item.link)
-				addItem(item.link)
+				addItem(item)
 			except:
 				logging.error("Error adding item \'{0}\': ".format(item.link) + str(sys.exc_info()[0]).strip())
 
@@ -72,27 +72,28 @@ parser.add_argument('--clear-added-items',
 # parse the arguments
 args = parser.parse_args()
 
-if args.log_file:
-	logging.basicConfig(format='%(asctime)s [%(levelname)s]: %(message)s',level=logging.DEBUG, filename=args.log_file)
-else:
-	logging.basicConfig(format='%(asctime)s: %(message)s',level=logging.DEBUG)
+if __name__ == "__main__":
+	if args.log_file:
+		logging.basicConfig(format='%(asctime)s [%(levelname)s]: %(message)s',level=logging.DEBUG, filename=args.log_file)
+	else:
+		logging.basicConfig(format='%(asctime)s: %(message)s',level=logging.DEBUG)
 
 
-# clears the added items file if asked for
-if args.clear_added_items:
-	os.remove(added_items_filepath)
+	# clears the added items file if asked for
+	if args.clear_added_items:
+		os.remove(added_items_filepath)
 
-# Connecting to Tranmission
-try:
-	tc = transmissionrpc.Client(args.transmission_host, port=args.transmission_port, user=args.transmission_user, password=args.transmission_password)
-except transmissionrpc.error.TransmissionError as te:
-	logging.error("Error connecting to Transmission: " + str(te).strip())
-	exit(0)
-except:
-	logging.error("Error connecting to Transmission: " + str(sys.exc_info()[0]).strip())
-	exit(0)
+	# Connecting to Tranmission
+	try:
+		tc = transmissionrpc.Client(args.transmission_host, port=args.transmission_port, user=args.transmission_user, password=args.transmission_password)
+	except transmissionrpc.error.TransmissionError as te:
+		logging.error("Error connecting to Transmission: " + str(te).strip())
+		exit(0)
+	except:
+		logging.error("Error connecting to Transmission: " + str(sys.exc_info()[0]).strip())
+		exit(0)
 
-# read the feed urls from config
-for feed_url in args.feed_urls:
-	parseFeed(feed_url)
+	# read the feed urls from config
+	for feed_url in args.feed_urls:
+		parseFeed(feed_url)
 
