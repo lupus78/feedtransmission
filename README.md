@@ -18,7 +18,7 @@ easy_install transmissionrpc
 easy_install feedparser
 ```
 
-You will need to run Tranmission and enable remote access.
+You will need to run Transmission and enable remote access.
 
 ## Usage
 
