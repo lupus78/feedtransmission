@@ -22,9 +22,10 @@ def readAddedItems():
 def addItem(item):
 	if args.download_dir:
 		logging.info("Adding Torrent: " + item.title + " (" + item.link + ") to " + args.download_dir)
+		tc.add_torrent(item.link, download_dir = args.download_dir)
 	else:
 		logging.info("Adding Torrent: " + item.title + " (" + item.link + ") to default directory")
-	tc.add_torrent(item.link, download_dir = args.download_dir)
+		tc.add_torrent(item.link)
 	with open(added_items_filepath, 'a') as f:
 		f.write(item.link + '\n')
 
