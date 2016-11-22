@@ -42,6 +42,8 @@ List of parameters available:
                         The logging file, if not specified, prints to output
   --clear-added-items   Clears the list of added torrents. You can also do
                         that by deleting the addeditems.txt
+  --download-dir <dir>  The directory where the downloaded contents will be
+                        saved in. Optional.
 ```
 
 
