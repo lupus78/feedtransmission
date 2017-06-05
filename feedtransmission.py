@@ -22,10 +22,10 @@ def readAddedItems():
 def addItem(item):
 	if args.download_dir:
 		logging.info("Adding Torrent: " + item.title + " (" + item.link + ") to " + args.download_dir)
-		tc.add_torrent(item.link, download_dir = args.download_dir)
+		tc.add_torrent(item.link, download_dir = args.download_dir, paused = args.add_paused)
 	else:
 		logging.info("Adding Torrent: " + item.title + " (" + item.link + ") to default directory")
-		tc.add_torrent(item.link)
+		tc.add_torrent(item.link, paused = args.add_paused)
 	with open(added_items_filepath, 'a') as f:
 		f.write(item.link + '\n')
 
@@ -65,6 +65,9 @@ parser.add_argument('--transmission-password',
 					default=None,
 					metavar='<password>',
 					help='Port for Transmission RPC (default: %(default)s)')
+parser.add_argument('--add-paused',
+					action='store_true',
+					help='Disables starting torrents after adding them')
 parser.add_argument('--log-file',
 					default=None,
 					metavar='<logfile path>',
@@ -104,4 +107,3 @@ if __name__ == "__main__":
 	# read the feed urls from config
 	for feed_url in args.feed_urls:
 		parseFeed(feed_url)
-
