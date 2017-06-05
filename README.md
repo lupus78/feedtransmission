@@ -38,6 +38,7 @@ List of parameters available:
                         Port for Transmission RPC (default: None)
   --transmission-password <password>
                         Port for Transmission RPC (default: None)
+  --add-paused          Disables starting torrents after adding them
   --log-file <logfile path>
                         The logging file, if not specified, prints to output
   --clear-added-items   Clears the list of added torrents. You can also do
