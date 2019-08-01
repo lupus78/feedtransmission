@@ -45,6 +45,10 @@ List of parameters available:
                         that by deleting the addeditems.txt
   --download-dir <dir>  The directory where the downloaded contents will be
                         saved in. Optional.
+  --search-pattern <pattern>
+                        The search pattern to filter the feed. Used with 
+                        re.search() python function. Optional.
+
 ```
 
 

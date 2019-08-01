@@ -5,6 +5,7 @@ import feedparser
 import transmissionrpc
 import argparse
 import logging
+import re
 
 # path to the added items list file
 added_items_filepath = os.path.join(os.path.abspath(os.path.dirname(os.path.abspath(__file__))), 'addeditems.txt')
@@ -39,11 +40,16 @@ def parseFeed(feed_url):
 	addeditems = readAddedItems()
 
 	for item in feed.entries:
-		if item.link not in addeditems:
-			try:
-				addItem(item)
-			except:
-				logging.error("Error adding item \'{0}\': ".format(item.link) + str(sys.exc_info()[0]).strip())
+		if args.search_pattern == None or re.search( args.search_pattern, item.title ):
+			if item.link not in addeditems:
+				try:
+					addItem(item)
+				except transmissionrpc.TransmissionError as e:
+					logging.error("Error adding item \'{0}\': {1}".format(item.link, e.message))
+				except transmissionrpc.HTTPHandlerError as e:
+					logging.error("Error adding item \'{0}\': [{1}] {2}".format(item.link, e.code, e.message))
+				except:
+					logging.error("Error adding item \'{0}\': {1}".format(item.link, str(sys.exc_info()[0]).strip()))
 
 # argparse configuration and argument definitions
 parser = argparse.ArgumentParser(description='Reads RSS/Atom Feeds and add torrents to Transmission')
@@ -79,6 +85,10 @@ parser.add_argument('--download-dir',
 					default=None,
 					metavar='<dir>',
 					help='The directory where the downloaded contents will be saved in. Optional.')
+parser.add_argument('--search-pattern',
+					default=None,
+					metavar='<pattern>',
+					help='The search pattern to filter the feed. Used with re.search() python function. Optional.')
 
 # parse the arguments
 args = parser.parse_args()
