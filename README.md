@@ -7,6 +7,11 @@ You will need two Python packages:
 * transmissionrpc (http://pythonhosted.org/transmissionrpc/)
 * feedparser (https://pythonhosted.org/feedparser/)
 
+Most easily like this:
+```
+pip install -r requirements.txt 
+```
+
 In Linux you can install these by
 ```
 pip install transmissionrpc
