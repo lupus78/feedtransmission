@@ -38,6 +38,9 @@ List of arguments available:
   --search-pattern <pattern>
                         The search pattern to filter the feed. Used with 
                         re.search() python function. Optional.
+  --search-patterns-list
+                        Use search patterns stored in paterns.txt. Used 
+                        with re.search() python function. Optional.
   --download-with-python
                         If specified the torrent file will be downloaded with
                         Python's request module, and not by Transmission.
@@ -47,4 +50,4 @@ List of arguments available:
 
 The script makes a file called `addeditems.txt` in the folder of the executable. This file stores the torrent links already added to Transmission.
 
-Transmission can fail to download the torrents with urllib2.HTTPError error, this usually happens with https:// torrent links. If that is the case, use the --download-with-python argument.
+

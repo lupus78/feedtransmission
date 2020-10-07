@@ -11,12 +11,13 @@ from random import random, seed
 
 # path to the added items list file
 added_items_filepath = os.path.join(os.path.abspath(os.path.dirname(os.path.abspath(__file__))), 'addeditems.txt')
+search_paterns_filepath = os.path.join(os.path.abspath(os.path.dirname(os.path.abspath(__file__))), 'paterns.txt')
 
 # read the added items list from the file
-def readAddedItems():
+def readItems(filepath):
 	addeditems = []
-	if os.path.exists(added_items_filepath):
-		with open(added_items_filepath,'r') as f:
+	if os.path.exists(filepath):
+		with open(filepath,'r') as f:
 			for line in f:
 				addeditems.append(line.rstrip('\n'))
 	return addeditems
@@ -57,6 +58,26 @@ def addItem(item):
     if filepath is not None:
         os.remove(filepath)
 
+# search for paterns by selected args
+def searchpatern(title, searchitems):
+	# search in list of paterns
+    if args.search_patterns_list:
+
+        for pattern in searchitems:
+            if re.search(pattern, title):
+                return True
+        return False
+
+	# search for patern received trough argument
+    elif re.search(args.search_pattern, title):
+        return True
+
+	# if none of above metods selected accept all
+    elif args.search_pattern == None:
+        return True
+	# if patern not match
+    return False
+
 # parses and adds torrents from feed
 def parseFeed(feed_url):
 	feed = feedparser.parse(feed_url)
@@ -64,10 +85,11 @@ def parseFeed(feed_url):
 		logging.error("Error reading feed \'{0}\': ".format(feed_url) + str(feed.bozo_exception).strip())
 		return
 
-	addeditems = readAddedItems()
+	addeditems = readItems(added_items_filepath)
+	searchitems = readItems(search_paterns_filepath)
 
 	for item in feed.entries:
-		if args.search_pattern == None or re.search( args.search_pattern, item.title ):
+		if searchpatern(item.title, searchitems):
 			if item.link not in addeditems:
 				try:
 					addItem(item)
@@ -116,6 +138,9 @@ parser.add_argument('--search-pattern',
 					default=None,
 					metavar='<pattern>',
 					help='The search pattern to filter the feed. Used with re.search() python function. Optional.')
+parser.add_argument('--search-patterns-list',
+					action='store_true',
+					help='Use search patterns stored in paterns.txt. Used with re.search() python function. Optional.')
 parser.add_argument('--download-with-python',
 					action='store_true',
 					help='If specified the torrent file will be downloaded with Python\'s request module, and not by Transmission. ')
