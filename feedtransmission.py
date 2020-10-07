@@ -22,7 +22,7 @@ def readAddedItems():
 	return addeditems
 
 # Download torrent as file
-def dltorrent(url):
+def dlTorrent(url):
     # generate random name
     seed(1)
     name = str(random())[3:10]
@@ -38,10 +38,11 @@ def dltorrent(url):
 # add the link to transmission and appends the link to the added items
 def addItem(item):
     # decide if we download a torent or just pass a url
-    if "https://" in item.link:
-        url, filepath = dltorrent(item.link)
+    if args.download_with_python:
+        url, filepath = dlTorrent(item.link)
     else:
         url = item.link
+        filepath = None
 
     if args.download_dir:
         logging.info("Adding Torrent: " + item.title + " (" + item.link + ") to " + args.download_dir)
@@ -115,6 +116,9 @@ parser.add_argument('--search-pattern',
 					default=None,
 					metavar='<pattern>',
 					help='The search pattern to filter the feed. Used with re.search() python function. Optional.')
+parser.add_argument('--download-with-python',
+					action='store_true',
+					help='If specified the torrent file will be downloaded with Python\'s request module, and not by Transmission. ')
 
 # parse the arguments
 args = parser.parse_args()

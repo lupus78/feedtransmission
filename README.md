@@ -3,24 +3,14 @@ feedtransmission is a python script to read RSS/Atom feeds of torrents and add t
 
 ## Install
 
-You will need two Python packages:
+Install necessary Python modules with: will need two Python packages:
 * transmissionrpc (http://pythonhosted.org/transmissionrpc/)
 * feedparser (https://pythonhosted.org/feedparser/)
+* requests
 
 Most easily like this:
 ```
 pip install -r requirements.txt 
-```
-
-In Linux you can install these by
-```
-pip install transmissionrpc
-pip install feedparser
-```
-or
-```
-easy_install transmissionrpc
-easy_install feedparser
 ```
 
 You will need to run Transmission and enable remote access.
@@ -33,7 +23,7 @@ feedtransmission.py http://url.to/torrent/feed.xml http://another.url/to/feed
 
 Most probably you want to add feedtransmission to your cron file to regularly monitor a feed.
 
-List of parameters available:
+List of arguments available:
 ```
   --transmission-host <host>
                         Host for Transmission RPC (default: localhost)
@@ -53,8 +43,13 @@ List of parameters available:
   --search-pattern <pattern>
                         The search pattern to filter the feed. Used with 
                         re.search() python function. Optional.
+  --download-with-python
+                        If specified the torrent file will be downloaded with
+                        Python's request module, and not by Transmission.
 
 ```
 
 
 The script makes a file called `addeditems.txt` in the folder of the executable. This file stores the torrent links already added to Transmission.
+
+Transmission can fail to download the torrents with urllib2.HTTPError error, this usually happens with https:// torrent links. If that is the case, use the --download-with-python argument.
