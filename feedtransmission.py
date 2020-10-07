@@ -2,7 +2,7 @@
 
 import sys, os
 import feedparser
-import transmissionrpc
+import transmission_rpc
 import argparse
 import logging
 import re
@@ -71,9 +71,9 @@ def parseFeed(feed_url):
 			if item.link not in addeditems:
 				try:
 					addItem(item)
-				except transmissionrpc.TransmissionError as e:
+				except transmission_rpc.TransmissionError as e:
 					logging.error("Error adding item \'{0}\': {1}".format(item.link, e.message))
-				except transmissionrpc.HTTPHandlerError as e:
+				except transmission_rpc.HTTPHandlerError as e:
 					logging.error("Error adding item \'{0}\': [{1}] {2}".format(item.link, e.code, e.message))
 				except:
 					logging.error("Error adding item \'{0}\': {1}".format(item.link, str(sys.exc_info()[0]).strip()))
@@ -136,8 +136,8 @@ if __name__ == "__main__":
 
 	# Connecting to Tranmission
 	try:
-		tc = transmissionrpc.Client(args.transmission_host, port=args.transmission_port, user=args.transmission_user, password=args.transmission_password)
-	except transmissionrpc.error.TransmissionError as te:
+		tc = transmission_rpc.Client(host=args.transmission_host, port=args.transmission_port, username=args.transmission_user, password=args.transmission_password)
+	except transmission_rpc.error.TransmissionError as te:
 		logging.error("Error connecting to Transmission: " + str(te).strip())
 		exit(0)
 	except:
