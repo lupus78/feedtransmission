@@ -3,12 +3,7 @@ feedtransmission is a python script to read RSS/Atom feeds of torrents and add t
 
 ## Install
 
-Install necessary Python modules with: will need two Python packages:
-* transmissionrpc (http://pythonhosted.org/transmissionrpc/)
-* feedparser (https://pythonhosted.org/feedparser/)
-* requests
-
-Most easily like this:
+Install necessary Python modules with:
 ```
 pip install -r requirements.txt 
 ```
