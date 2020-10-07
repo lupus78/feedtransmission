@@ -6,6 +6,8 @@ import transmissionrpc
 import argparse
 import logging
 import re
+import requests
+from random import random, seed
 
 # path to the added items list file
 added_items_filepath = os.path.join(os.path.abspath(os.path.dirname(os.path.abspath(__file__))), 'addeditems.txt')
@@ -19,16 +21,40 @@ def readAddedItems():
 				addeditems.append(line.rstrip('\n'))
 	return addeditems
 
+# Download torrent as file
+def dltorrent(url):
+    # generate random name
+    seed(1)
+    name = str(random())[3:10]
+    filepath = os.path.join(os.path.abspath(os.path.dirname(os.path.abspath(__file__))), name + '.torrent')
+
+    # open temporary file
+    with open(filepath,'wb') as f:
+        # download content
+        response = requests.get(url)
+        f.write(response.content)
+        return str("file://") + str(filepath), filepath
+
 # add the link to transmission and appends the link to the added items
 def addItem(item):
-	if args.download_dir:
-		logging.info("Adding Torrent: " + item.title + " (" + item.link + ") to " + args.download_dir)
-		tc.add_torrent(item.link, download_dir = args.download_dir, paused = args.add_paused)
-	else:
-		logging.info("Adding Torrent: " + item.title + " (" + item.link + ") to default directory")
-		tc.add_torrent(item.link, paused = args.add_paused)
-	with open(added_items_filepath, 'a') as f:
-		f.write(item.link + '\n')
+    # decide if we download a torent or just pass a url
+    if "https://" in item.link:
+        url, filepath = dltorrent(item.link)
+    else:
+        url = item.link
+
+    if args.download_dir:
+        logging.info("Adding Torrent: " + item.title + " (" + item.link + ") to " + args.download_dir)
+        tc.add_torrent(url, download_dir = args.download_dir, paused = args.add_paused)
+    else:
+        logging.info("Adding Torrent: " + item.title + " (" + item.link + ") to default directory")
+        tc.add_torrent(url, paused = args.add_paused)
+    with open(added_items_filepath, 'a') as f:
+        f.write(item.link + '\n')
+
+    # remove temporary torrent file
+    if filepath is not None:
+        os.remove(filepath)
 
 # parses and adds torrents from feed
 def parseFeed(feed_url):
