@@ -13,10 +13,10 @@ from random import random, seed
 added_items_filepath = os.path.join(os.path.abspath(os.path.dirname(os.path.abspath(__file__))), 'addeditems.txt')
 
 # read the added items list from the file
-def readAddedItems():
+def readItems(filepath):
 	addeditems = []
-	if os.path.exists(added_items_filepath):
-		with open(added_items_filepath,'r') as f:
+	if os.path.exists(filepath):
+		with open(filepath,'r') as f:
 			for line in f:
 				addeditems.append(line.rstrip('\n'))
 	return addeditems
@@ -57,26 +57,51 @@ def addItem(item):
     if filepath is not None:
         os.remove(filepath)
 
+# search for paterns by selected args
+def searchPattern(title, searchitems):
+	# search in list of paterns
+    if args.search_patterns_file is not None:
+
+        for pattern in searchitems:
+            if re.search(pattern, title):
+                return True
+        return False
+
+	# search for patern received trough argument
+    elif re.search(args.search_pattern, title):
+        return True
+
+	# if none of above metods selected accept all
+    elif args.search_pattern == None:
+        return True
+	# if patern not match
+    return False
+
 # parses and adds torrents from feed
 def parseFeed(feed_url):
-	feed = feedparser.parse(feed_url)
-	if feed.bozo and feed.bozo_exception:
-		logging.error("Error reading feed \'{0}\': ".format(feed_url) + str(feed.bozo_exception).strip())
-		return
+    feed = feedparser.parse(feed_url)
+    if feed.bozo and feed.bozo_exception:
+        logging.error("Error reading feed \'{0}\': ".format(feed_url) + str(feed.bozo_exception).strip())
+        return
 
-	addeditems = readAddedItems()
+    addeditems = readItems(added_items_filepath)
 
-	for item in feed.entries:
-		if args.search_pattern == None or re.search( args.search_pattern, item.title ):
-			if item.link not in addeditems:
-				try:
-					addItem(item)
-				except transmission_rpc.TransmissionError as e:
-					logging.error("Error adding item \'{0}\': {1}".format(item.link, e.message))
-				except transmission_rpc.HTTPHandlerError as e:
-					logging.error("Error adding item \'{0}\': [{1}] {2}".format(item.link, e.code, e.message))
-				except:
-					logging.error("Error adding item \'{0}\': {1}".format(item.link, str(sys.exc_info()[0]).strip()))
+    # load patern list to memory if present
+    if args.search_patterns_file is not None:
+        search_paterns_filepath = os.path.join(os.path.abspath(os.path.dirname(os.path.abspath(__file__))), args.search_patterns_file)
+        searchitems = readItems(search_paterns_filepath)
+
+    for item in feed.entries:
+        if searchPattern(item.title, searchitems):
+            if item.link not in addeditems:
+                try:
+                    addItem(item)
+                except transmission_rpc.TransmissionError as e:
+                    logging.error("Error adding item \'{0}\': {1}".format(item.link, e.message))
+                except transmission_rpc.HTTPHandlerError as e:
+                    logging.error("Error adding item \'{0}\': [{1}] {2}".format(item.link, e.code, e.message))
+                except:
+                    logging.error("Error adding item \'{0}\': {1}".format(item.link, str(sys.exc_info()[0]).strip()))
 
 # argparse configuration and argument definitions
 parser = argparse.ArgumentParser(description='Reads RSS/Atom Feeds and add torrents to Transmission')
@@ -116,6 +141,10 @@ parser.add_argument('--search-pattern',
 					default=None,
 					metavar='<pattern>',
 					help='The search pattern to filter the feed. Used with re.search() python function. Optional.')
+parser.add_argument('--search-patterns-file',
+					default=None,
+					metavar='<paternsfile path>',
+					help='Use search patterns stored in txt file. Used with re.search() python function. Optional.')
 parser.add_argument('--download-with-python',
 					action='store_true',
 					help='If specified the torrent file will be downloaded with Python\'s request module, and not by Transmission. ')
