@@ -38,7 +38,7 @@ List of arguments available:
   --search-pattern <pattern>
                         The search pattern to filter the feed. Used with 
                         re.search() python function. Optional.
-  --search-patterns-file
+  --search-patterns-file <patternsfile path>
                         Use search patterns stored in txt file. Used 
                         with re.search() python function. Optional.
   --download-with-python

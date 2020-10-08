@@ -57,9 +57,9 @@ def addItem(item):
     if filepath is not None:
         os.remove(filepath)
 
-# search for paterns by selected args
+# search for patterns by selected args
 def searchPattern(title, searchitems):
-	# search in list of paterns
+	# search in list of patterns
     if args.search_patterns_file is not None:
 
         for pattern in searchitems:
@@ -67,14 +67,14 @@ def searchPattern(title, searchitems):
                 return True
         return False
 
-	# search for patern received trough argument
+	# search for pattern received trough argument
     elif re.search(args.search_pattern, title):
         return True
 
-	# if none of above metods selected accept all
+	# if none of above methods selected accept all
     elif args.search_pattern == None:
         return True
-	# if patern not match
+	# if pattern not match
     return False
 
 # parses and adds torrents from feed
@@ -86,13 +86,15 @@ def parseFeed(feed_url):
 
     addeditems = readItems(added_items_filepath)
 
-    # load patern list to memory if present
+    # load pattern list to memory if present
     if args.search_patterns_file is not None:
-        search_paterns_filepath = os.path.join(os.path.abspath(os.path.dirname(os.path.abspath(__file__))), args.search_patterns_file)
-        searchitems = readItems(search_paterns_filepath)
+        search_patterns_filepath = os.path.join(os.path.abspath(os.path.dirname(os.path.abspath(__file__))), args.search_patterns_file)
+        searchitems = readItems(search_patterns_filepath)
+    else:
+    	searchitems = None
 
     for item in feed.entries:
-        if searchPattern(item.title, searchitems):
+        if searchitems is None or searchPattern(item.title, searchitems):
             if item.link not in addeditems:
                 try:
                     addItem(item)
@@ -143,7 +145,7 @@ parser.add_argument('--search-pattern',
 					help='The search pattern to filter the feed. Used with re.search() python function. Optional.')
 parser.add_argument('--search-patterns-file',
 					default=None,
-					metavar='<paternsfile path>',
+					metavar='<patternsfile path>',
 					help='Use search patterns stored in txt file. Used with re.search() python function. Optional.')
 parser.add_argument('--download-with-python',
 					action='store_true',
@@ -176,3 +178,4 @@ if __name__ == "__main__":
 	# read the feed urls from config
 	for feed_url in args.feed_urls:
 		parseFeed(feed_url)
+
