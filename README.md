@@ -50,4 +50,4 @@ List of arguments available:
 
 The script makes a file called `addeditems.txt` in the folder of the executable. This file stores the torrent links already added to Transmission.
 
-
+Transmission can fail to download the torrents with urllib2.HTTPError error. If that is the case, use the --download-with-python argument.
