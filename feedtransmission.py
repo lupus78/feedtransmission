@@ -8,9 +8,22 @@ import logging
 import re
 import requests
 from random import random, seed
+import json
+import hashlib
 
-# path to the added items list file
-added_items_filepath = os.path.join(os.path.abspath(os.path.dirname(os.path.abspath(__file__))), 'addeditems.txt')
+# files path check/construction
+def checkFilePath(path):
+    # check if path is absolute
+    if os.path.isabs(path):
+        filepath = path
+    # construct absolute path
+    else:
+        filepath = os.path.join(os.path.abspath(os.path.dirname(os.path.abspath(__file__))), path)
+    # check if file exist
+    if not os.path.exists(filepath):
+        logging.error("Error: given file not found:\'{0}\': ".format(path))
+        exit(0)
+    return filepath
 
 # read the added items list from the file
 def readItems(filepath):
@@ -38,18 +51,18 @@ def dlTorrent(url):
 # add the link to transmission and appends the link to the added items
 def addItem(item):
     # decide if we download a torent or just pass a url
-    if args.download_with_python:
+    if configuration["download-with-python"]:
         url, filepath = dlTorrent(item.link)
     else:
         url = item.link
         filepath = None
 
-    if args.download_dir:
-        logging.info("Adding Torrent: " + item.title + " (" + item.link + ") to " + args.download_dir)
-        tc.add_torrent(url, download_dir = args.download_dir, paused = args.add_paused)
+    if configuration["download-dir"] is not None:
+        logging.info("Adding Torrent: " + item.title + " (" + item.link + ") to " + configuration["download-dir"])
+        tc.add_torrent(url, download_dir = configuration["download-dir"], paused = configuration["add-paused"])
     else:
         logging.info("Adding Torrent: " + item.title + " (" + item.link + ") to default directory")
-        tc.add_torrent(url, paused = args.add_paused)
+        tc.add_torrent(url, paused = configuration["add-paused"])
     with open(added_items_filepath, 'a') as f:
         f.write(item.link + '\n')
 
@@ -60,7 +73,7 @@ def addItem(item):
 # search for patterns by selected args
 def searchPattern(title, searchitems):
 	# search in list of patterns
-    if args.search_patterns_file is not None:
+    if configuration["search-patterns-file"] is not None:
 
         for pattern in searchitems:
             if re.search(pattern, title):
@@ -68,7 +81,7 @@ def searchPattern(title, searchitems):
         return False
 
 	# search for pattern received trough argument
-    elif re.search(args.search_pattern, title):
+    elif args.search_pattern is not None and re.search(args.search_pattern, title):
         return True
 
 	# if none of above methods selected accept all
@@ -87,28 +100,37 @@ def parseFeed(feed_url):
     addeditems = readItems(added_items_filepath)
 
     # load pattern list to memory if present
-    if args.search_patterns_file is not None:
-        search_patterns_filepath = os.path.join(os.path.abspath(os.path.dirname(os.path.abspath(__file__))), args.search_patterns_file)
-        searchitems = readItems(search_patterns_filepath)
+    if configuration["search-patterns-file"] is not None:
+        path =configuration["search-patterns-file"]
+
+        # check if given string contain relative or absolute path
+        if os.path.isabs(path):
+            searchitems = path
+        # if not, construct full path
+        else:
+            filepath = os.path.join(os.path.abspath(os.path.dirname(os.path.abspath(__file__))), configuration["search-patterns-file"])
+            searchitems = readItems(filepath)
     else:
     	searchitems = None
 
     for item in feed.entries:
-        if searchitems is None or searchPattern(item.title, searchitems):
+        if searchPattern(item.title, searchitems):
             if item.link not in addeditems:
                 try:
                     addItem(item)
-                except transmission_rpc.TransmissionError as e:
+                except transmission_rpc.error.TransmissionError as e:
                     logging.error("Error adding item \'{0}\': {1}".format(item.link, e.message))
-                except transmission_rpc.HTTPHandlerError as e:
-                    logging.error("Error adding item \'{0}\': [{1}] {2}".format(item.link, e.code, e.message))
+                #except transmission_rpc.HTTPHandlerError as e:
+                #    logging.error("Error adding item \'{0}\': [{1}] {2}".format(item.link, e.code, e.message))
                 except:
                     logging.error("Error adding item \'{0}\': {1}".format(item.link, str(sys.exc_info()[0]).strip()))
 
 # argparse configuration and argument definitions
 parser = argparse.ArgumentParser(description='Reads RSS/Atom Feeds and add torrents to Transmission')
-parser.add_argument('feed_urls', metavar='<url>', type=str, nargs='+',
-				   help='Feed Url(s)')
+parser.add_argument('--config-file',
+					default=None,
+					metavar='<configfile path>',
+					help='The config json file path, if not specified or partialy set, args are used.')
 parser.add_argument('--transmission-host',
 					metavar='<host>',
 					default='localhost',
@@ -150,13 +172,58 @@ parser.add_argument('--search-patterns-file',
 parser.add_argument('--download-with-python',
 					action='store_true',
 					help='If specified the torrent file will be downloaded with Python\'s request module, and not by Transmission. ')
-
+parser.add_argument('--feed-urls', default=None, metavar='<url>', type=str, nargs='+',
+				   help='Feed Url(s)')
 # parse the arguments
 args = parser.parse_args()
 
+# dictionary with default settings
+configuration = {"transmission-host" : "", "transmission-port" : "", "transmission-user" : "",
+	 "transmission-password" : "", "log-file" : "", "add-paused" : False, "download-dir" : "",
+	 "download-with-python" : False, "search-patterns-file" : "", "feed-urls" : [""]}
+
+# get settings from args
+for item in configuration:
+	configuration[item] = getattr(args, item.replace("-","_"))
+
+# read config file if present
+if args.config_file is not None:
+    filepath = checkFilePath(args.config_file)
+
+    with open(filepath) as config_file:
+        config = json.load(config_file)
+
+        # loop trough items in config
+        for item in config:
+            # check if value is not empty
+            if config[item] != "":
+                # handle all types of imput json variables
+                if type(config[item]) == list and config[item][0] is not "":
+                    configuration[item] = config[item]
+                if type(config[item]) == bool and config[item] is not None:
+                    configuration[item] = config[item]
+                if type(config[item]) == str and config[item] is not "":
+                    configuration[item] = config[item]
+
+        # generate name of additems.txt pased on config name/path
+        hash_object = hashlib.sha256(str(args.config_file).encode("utf8"))
+        hex_dig = hash_object.hexdigest()
+        addeditems_file = "addeditems-" + hex_dig[:8] + ".txt"
+else:
+	addeditems_file = "addeditems.txt"
+
+# path to the added items list file
+added_items_filepath = os.path.join(os.path.abspath(os.path.dirname(os.path.abspath(__file__))), addeditems_file)
+
+# check if at least one feed url was given
+if configuration["feed-urls"][0] is "":
+    logging.error("Error: no feed url set")
+    exit(0)
+
 if __name__ == "__main__":
-	if args.log_file:
-		logging.basicConfig(format='%(asctime)s [%(levelname)s]: %(message)s',level=logging.DEBUG, filename=args.log_file)
+	if configuration["log-file"] is not None:
+		filepath = checkFilePath(configuration["log_file"])
+		logging.basicConfig(format='%(asctime)s [%(levelname)s]: %(message)s',level=logging.DEBUG, filename=filepath)
 	else:
 		logging.basicConfig(format='%(asctime)s: %(message)s',level=logging.DEBUG)
 
@@ -167,7 +234,7 @@ if __name__ == "__main__":
 
 	# Connecting to Tranmission
 	try:
-		tc = transmission_rpc.Client(host=args.transmission_host, port=args.transmission_port, username=args.transmission_user, password=args.transmission_password)
+		tc = transmission_rpc.Client(host=configuration["transmission-host"], port=configuration["transmission-port"], username=configuration["transmission-user"], password=configuration["transmission-password"])
 	except transmission_rpc.error.TransmissionError as te:
 		logging.error("Error connecting to Transmission: " + str(te).strip())
 		exit(0)
@@ -176,6 +243,6 @@ if __name__ == "__main__":
 		exit(0)
 
 	# read the feed urls from config
-	for feed_url in args.feed_urls:
+	for feed_url in configuration["feed-urls"]:
 		parseFeed(feed_url)
 

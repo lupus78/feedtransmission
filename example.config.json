@@ -1,0 +1,12 @@
+{
+    "transmission-host" : "localhost",
+    "transmission-port" : "9091",
+    "transmission-user" : "",
+    "transmission-password" : "",
+    "log-file" : "",
+    "add-paused" : true,
+    "download-dir" : "",
+    "download-with-python" : false,
+    "search-patterns-file" : "",
+    "feed-urls" : [""]
+}

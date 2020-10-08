@@ -13,13 +13,16 @@ You will need to run Transmission and enable remote access.
 ## Usage
 
 ```
-feedtransmission.py http://url.to/torrent/feed.xml http://another.url/to/feed
+feedtransmission.py --feed-urls http://url.to/torrent/feed.xml http://another.url/to/feed
 ```
 
 Most probably you want to add feedtransmission to your cron file to regularly monitor a feed.
 
 List of arguments available:
 ```
+  --config-file <configfile path>
+                        The config json file path, if not specified or 
+                        partialy set, args are used.
   --transmission-host <host>
                         Host for Transmission RPC (default: localhost)
   --transmission-port <port>

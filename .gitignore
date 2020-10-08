@@ -1,4 +1,5 @@
 addeditems.txt
+addeditems-*.txt
 
 .venv
 .vscode
