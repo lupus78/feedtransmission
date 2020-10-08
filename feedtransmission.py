@@ -68,7 +68,7 @@ def searchPattern(title, searchitems):
         return False
 
 	# search for pattern received trough argument
-    elif re.search(args.search_pattern, title):
+    elif args.search_pattern is not None and re.search(args.search_pattern, title):
         return True
 
 	# if none of above methods selected accept all
@@ -94,7 +94,7 @@ def parseFeed(feed_url):
     	searchitems = None
 
     for item in feed.entries:
-        if searchitems is None or searchPattern(item.title, searchitems):
+        if searchPattern(item.title, searchitems):
             if item.link not in addeditems:
                 try:
                     addItem(item)
