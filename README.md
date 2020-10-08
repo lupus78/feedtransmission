@@ -38,8 +38,8 @@ List of arguments available:
   --search-pattern <pattern>
                         The search pattern to filter the feed. Used with 
                         re.search() python function. Optional.
-  --search-patterns-list
-                        Use search patterns stored in paterns.txt. Used 
+  --search-patterns-file
+                        Use search patterns stored in txt file. Used 
                         with re.search() python function. Optional.
   --download-with-python
                         If specified the torrent file will be downloaded with
