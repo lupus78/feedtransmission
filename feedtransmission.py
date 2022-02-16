@@ -222,7 +222,7 @@ if configuration["feed-urls"][0] == "":
 
 if __name__ == "__main__":
 	if configuration["log-file"] is not None:
-		filepath = checkFilePath(configuration["log_file"])
+		filepath = checkFilePath(configuration["log-file"])
 		logging.basicConfig(format='%(asctime)s [%(levelname)s]: %(message)s',level=logging.DEBUG, filename=filepath)
 	else:
 		logging.basicConfig(format='%(asctime)s: %(message)s',level=logging.DEBUG)
