@@ -198,11 +198,11 @@ if args.config_file is not None:
             # check if value is not empty
             if config[item] != "":
                 # handle all types of imput json variables
-                if type(config[item]) == list and config[item][0] is not "":
+                if type(config[item]) == list and config[item][0] != "":
                     configuration[item] = config[item]
                 if type(config[item]) == bool and config[item] is not None:
                     configuration[item] = config[item]
-                if type(config[item]) == str and config[item] is not "":
+                if type(config[item]) == str and config[item] != "":
                     configuration[item] = config[item]
 
         # generate name of additems.txt pased on config name/path
@@ -216,7 +216,7 @@ else:
 added_items_filepath = os.path.join(os.path.abspath(os.path.dirname(os.path.abspath(__file__))), addeditems_file)
 
 # check if at least one feed url was given
-if configuration["feed-urls"][0] is "":
+if configuration["feed-urls"][0] == "":
     logging.error("Error: no feed url set")
     exit(0)
 
