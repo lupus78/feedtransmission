@@ -7,7 +7,6 @@ import argparse
 import logging
 import re
 import requests
-from random import random, seed
 import json
 import hashlib
 
@@ -34,41 +33,31 @@ def readItems(filepath):
 				addeditems.append(line.rstrip('\n'))
 	return addeditems
 
-# Download torrent as file
-def dlTorrent(url):
-    # generate random name
-    seed(1)
-    name = str(random())[3:10]
-    filepath = os.path.join(os.path.abspath(os.path.dirname(os.path.abspath(__file__))), name + '.torrent')
-
-    # open temporary file
-    with open(filepath,'wb') as f:
-        # download content
-        response = requests.get(url)
-        f.write(response.content)
-        return str("file://") + str(filepath), filepath
-
 # add the link to transmission and appends the link to the added items
 def addItem(item):
-    # decide if we download a torent or just pass a url
-    if configuration["download-with-python"]:
-        url, filepath = dlTorrent(item.link)
+    torrent_data = None
+    r = None
+
+    # magnet
+    if item.link.startswith('magnet:'):
+        torrent_data = item.link
+    # download torrent
+    elif item.link.startswith(('http://', 'https://')):
+        r = requests.get(item.link)
+        torrent_data = r.content
     else:
-        url = item.link
-        filepath = None
+        logging.error("Error adding item \'{0}\': {1}".format(item.link, 'Link is not magnet or torrent url'))
+        return
 
     if configuration["download-dir"] is not None:
         logging.info("Adding Torrent: " + item.title + " (" + item.link + ") to " + configuration["download-dir"])
-        tc.add_torrent(url, download_dir = configuration["download-dir"], paused = configuration["add-paused"])
+        tc.add_torrent(torrent_data, download_dir = configuration["download-dir"], paused = configuration["add-paused"])
     else:
         logging.info("Adding Torrent: " + item.title + " (" + item.link + ") to default directory")
-        tc.add_torrent(url, paused = configuration["add-paused"])
+        tc.add_torrent(torrent_data, paused = configuration["add-paused"])
+
     with open(added_items_filepath, 'a') as f:
         f.write(item.link + '\n')
-
-    # remove temporary torrent file
-    if filepath is not None:
-        os.remove(filepath)
 
 # search for patterns by selected args
 def searchPattern(title, searchitems):
