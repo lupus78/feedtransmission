@@ -1,12 +1,16 @@
 {
-    "transmission-host" : "localhost",
-    "transmission-port" : "9091",
-    "transmission-user" : "",
-    "transmission-password" : "",
-    "log-file" : "",
-    "add-paused" : true,
-    "download-dir" : "",
-    "download-with-python" : false,
-    "search-patterns-file" : "",
-    "feed-urls" : [""]
+    "config_file": null,
+    "feed_urls": ["https://example.com/feed.xml"],
+    "transmission_host": "localhost",
+    "transmission_port": 9091,
+    "transmission_user": "",
+    "transmission_password": "",
+    "add_paused": false,
+    "download_dir": null,
+    "download_with_python": false,
+    "search_pattern": null,
+    "search_patterns_file": null,
+    "added_torrents_file": "added_torrents.txt",
+    "clear_added_torrents": false,
+    "log_file": null
 }

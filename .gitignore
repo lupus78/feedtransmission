@@ -1,5 +1,5 @@
-addeditems.txt
-addeditems-*.txt
+added_torrents.txt
+added_torrents*.txt
 
 .venv
 .vscode
