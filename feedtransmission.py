@@ -55,9 +55,11 @@ def addTorrentToTransmission(item):
     else:
         url = item.link
 
-    if configuration["download_dir"] is not None and configuration["download_dir"] != "":
-        tc.add_torrent(url, download_dir = configuration["download_dir"], paused = configuration["add_paused"])
-        logging.info(f"Added Torrent: {item.title} ({item.link}) to {configuration["download_dir"]}")
+    download_dir = configuration.get("download_dir")
+
+    if download_dir is not None and download_dir != "":
+        tc.add_torrent(url, download_dir = download_dir, paused = configuration["add_paused"])
+        logging.info(f"Added Torrent: {item.title} ({item.link}) to {download_dir}")
     else:
         tc.add_torrent(url, paused = configuration["add_paused"])
         logging.info(f"Added Torrent: {item.title} ({item.link}) to default directory")
